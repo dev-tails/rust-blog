@@ -1,15 +1,22 @@
 use std::fs;
 use std::path::Path;
+use std::ffi::OsStr;
 
 use tokio::net::TcpListener;
 use tokio::io::{AsyncWriteExt, AsyncBufReadExt, BufStream};
 
 use regex::Regex;
 
+use markdown::markdown_to_html;
+
 
 #[tokio::main]
 async fn main() {
-    let listener = TcpListener::bind("[::]:8000").await.unwrap();
+    let port = std::env::var("PORT").unwrap_or(String::from("8000"));
+
+    let bind_address = format!("[::]:{port}");
+
+    let listener = TcpListener::bind(bind_address).await.unwrap();
 
     loop {
         let (stream, _) = listener.accept().await.unwrap();
@@ -43,21 +50,27 @@ async fn main() {
                     line.truncate(0);
                 }
 
-                // let re = Regex::new(r"^(.*) (.*) (.*)").unwrap();
-                // let caps = re.captures(&request_line).unwrap();
-                // let pathname = caps.get(2).map_or("", |m| m.as_str());
+                // GET /hello-world.html HTTP1.1
+                let re = Regex::new(r"^(.*) (.*) (.*)").unwrap();
+                let caps = re.captures(&request_line).unwrap();
+                let pathname = caps.get(2).map_or("", |m| m.as_str());
 
-                // let mut filename = "index.html";
-                // if pathname != "/" {
-                //     filename = &pathname[1..];
-                // }
+                let mut filename = "index.html";
+                if pathname != "/" {
+                    filename = &pathname[1..];
+                }
 
                 let mut contents = String::new();
 
-                // let full_file_path = format!("{}{}", "posts/", filename);
-                // if Path::new(&full_file_path).exists() {
-                //     contents = fs::read_to_string(&full_file_path).unwrap();
-                // }
+                let full_file_path_string = format!("{}{}", "posts/", filename);
+                let path = Path::new(&full_file_path_string);
+                if path.exists() {
+                    contents = fs::read_to_string(&path).unwrap();
+                }
+
+                if path.extension().and_then(OsStr::to_str) == Some("md") {
+                    contents = markdown_to_html(contents);
+                }
 
                 let content_len = contents.len();
 

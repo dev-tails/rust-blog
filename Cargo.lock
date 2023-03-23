@@ -27,6 +27,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "blog"
 version = "0.1.0"
 dependencies = [
+ "markdown",
  "regex",
  "tokio",
 ]
@@ -76,6 +77,10 @@ checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "markdown"
+version = "0.1.0"
 
 [[package]]
 name = "memchr"
